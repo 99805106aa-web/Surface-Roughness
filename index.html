@@ -96,6 +96,25 @@
     }
     .name-form input:focus { border-color: var(--primary); }
 
+    /* ── 강의 전/후 선택 ── */
+    .timing-wrap { margin-bottom: 16px; }
+    .timing-wrap .timing-label {
+      display: block; font-size: 14px; font-weight: 600;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .timing-btns { display: flex; gap: 10px; }
+    .timing-btn {
+      flex: 1; padding: 14px 10px; font-size: 15px; font-weight: 700;
+      border: 2px solid var(--border); border-radius: 8px;
+      background: #fff; cursor: pointer; font-family: inherit;
+      color: var(--muted); transition: all .15s;
+    }
+    .timing-btn:hover { border-color: var(--primary); background: #eff6ff; }
+    .timing-btn.active {
+      border-color: var(--primary); background: #eff6ff;
+      color: var(--primary);
+    }
+
     /* ── 버튼 ── */
     .btn {
       display: inline-flex;
@@ -320,6 +339,13 @@
       <p>총 20문항 · 객관식 4지선다</p>
     </div>
     <div class="card name-form">
+      <div class="timing-wrap">
+        <span class="timing-label">강의 시점을 선택하세요</span>
+        <div class="timing-btns">
+          <button class="timing-btn" id="btn-pre"  onclick="selectTiming('강의 전')">📚 강의 전</button>
+          <button class="timing-btn" id="btn-post" onclick="selectTiming('강의 후')">🎓 강의 후</button>
+        </div>
+      </div>
       <label for="input-name">수험자 이름을 입력하세요</label>
       <input type="text" id="input-name" placeholder="홍길동" autocomplete="off" />
       <div style="height:16px"></div>
@@ -522,7 +548,15 @@ const QUESTIONS = [
 
 /* ─── 상태 ─── */
 let studentName = "";
+let quizTiming  = "";
 let userAnswers = new Array(QUESTIONS.length).fill(null);
+
+/* ─── 강의 전/후 선택 ─── */
+function selectTiming(val) {
+  quizTiming = val;
+  document.getElementById('btn-pre').classList.toggle('active',  val === '강의 전');
+  document.getElementById('btn-post').classList.toggle('active', val === '강의 후');
+}
 
 /* ─── 이름 입력 ─── */
 document.getElementById('input-name').addEventListener('keypress', e => {
@@ -530,6 +564,11 @@ document.getElementById('input-name').addEventListener('keypress', e => {
 });
 
 function startQuiz() {
+  if (!quizTiming) {
+    document.getElementById('btn-pre').style.borderColor  = 'var(--danger)';
+    document.getElementById('btn-post').style.borderColor = 'var(--danger)';
+    return;
+  }
   const name = document.getElementById('input-name').value.trim();
   if (!name) {
     document.getElementById('input-name').focus();
@@ -537,7 +576,7 @@ function startQuiz() {
     return;
   }
   studentName = name;
-  document.getElementById('quiz-student-name').textContent = name + ' 님';
+  document.getElementById('quiz-student-name').textContent = '[' + quizTiming + '] ' + name + ' 님';
   renderQuestions();
   show('screen-quiz');
 }
@@ -666,6 +705,7 @@ function sendEmail(score, pct) {
 
   const templateParams = {
     student_name: studentName,
+    quiz_timing:  quizTiming,
     score: score,
     total: QUESTIONS.length,
     percent: pct,
