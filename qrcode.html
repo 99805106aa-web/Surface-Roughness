@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>표면거칠기 퀴즈 QR코드</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f1f5f9;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      padding: 40px 48px;
+      text-align: center;
+      max-width: 400px;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 28px;
+    }
+    canvas {
+      border-radius: 8px;
+    }
+    .url {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #2563eb;
+      word-break: break-all;
+    }
+    .guide {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+    .print-btn {
+      margin-top: 24px;
+      padding: 12px 32px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .print-btn:hover { background: #1d4ed8; }
+    @media print {
+      .print-btn { display: none; }
+      body { background: #fff; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="title">표면거칠기 퀴즈</div>
+  <div class="subtitle">QR 코드를 스캔하여 시험에 응시하세요</div>
+  <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=https://jocular-gelato-11f9af.netlify.app&margin=10" alt="QR코드" width="240" height="240" style="border-radius:8px;" />
+  <div class="url">https://jocular-gelato-11f9af.netlify.app</div>
+  <div class="guide">
+    📱 스마트폰 카메라로 QR 코드 스캔<br>
+    ✏️ 이름 입력 후 문제 풀기<br>
+    ✅ 제출하면 즉시 채점 완료
+  </div>
+  <button class="print-btn" onclick="window.print()">🖨️ 인쇄하기</button>
+</div>
+
+</body>
+</html>
