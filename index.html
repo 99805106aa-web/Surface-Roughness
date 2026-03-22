@@ -414,11 +414,13 @@
 </div>
 
 <script>
-/* ───────────── EmailJS 설정 (직접 수정 필요) ───────────── */
+/* ───────────── EmailJS 설정 ───────────── */
 const EMAILJS_PUBLIC_KEY  = "4_97GNSqGIfzJW0Qe";
 const EMAILJS_SERVICE_ID  = "service_uwvgjmk";
 const EMAILJS_TEMPLATE_ID = "template_k2isa5l";
-/* ──────────────────────────────────────────────────────── */
+/* ───────────── Google Sheets 설정 ────── */
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbyvMpGPcxwkLfUMjvU08N1aNZF6JJJii_ifZCOLGelkbq_BicPM5QCMNdB8roVDtCK3/exec";
+/* ──────────────────────────────────────── */
 
 emailjs.init(EMAILJS_PUBLIC_KEY);
 
@@ -721,6 +723,15 @@ function sendEmail(score, pct) {
     detail: detailLines,
   };
 
+  // Google Sheets 전송
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(templateParams),
+  });
+
+  // EmailJS 전송
   emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
     .then(() => {
       const el = document.getElementById('send-status');
