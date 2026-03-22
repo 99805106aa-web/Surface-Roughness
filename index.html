@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>표면거칠기 퀴즈</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px 16px 40px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── 헤더 ── */
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .header .badge {
+      display: inline-block;
+      background: var(--primary);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .header p {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* ── 카드 ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 28px 24px;
+      margin-bottom: 16px;
+    }
+
+    /* ── 입력 화면 ── */
+    .name-form label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .name-form input {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color .2s;
+      font-family: inherit;
+    }
+    .name-form input:focus { border-color: var(--primary); }
+
+    /* ── 버튼 ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      font-family: inherit;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--primary); color: #fff; width: 100%; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-outline {
+      background: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+
+    /* ── 진행 바 ── */
+    .progress-wrap {
+      margin-bottom: 20px;
+    }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .progress-bar-bg {
+      height: 6px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 99px;
+      transition: width .3s ease;
+    }
+
+    /* ── 문제 카드 ── */
+    .question-num {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .question-text {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+    .option-label:hover { border-color: var(--primary); background: #eff6ff; }
+    .option-label input[type="radio"] { display: none; }
+    .option-label.selected {
+      border-color: var(--primary);
+      background: #eff6ff;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .option-num {
+      min-width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .option-label.selected .option-num {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* ── 네비게이션 ── */
+    .nav-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .nav-btns .btn { flex: 1; }
+    .btn-ghost {
+      background: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover { background: #cbd5e1; }
+
+    /* ── 결과 화면 ── */
+    .result-score-wrap {
+      text-align: center;
+      padding: 10px 0 20px;
+    }
+    .score-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #7c3aed);
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 24px rgba(37,99,235,0.3);
+    }
+    .score-circle .score-num {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .score-circle .score-denom {
+      font-size: 13px;
+      opacity: 0.85;
+    }
+    .result-name {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .result-pct {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    /* ── 문항별 결과 ── */
+    .result-list { display: flex; flex-direction: column; gap: 10px; }
+    .result-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      font-size: 14px;
+    }
+    .result-item.correct { border-color: #bbf7d0; background: #f0fdf4; }
+    .result-item.wrong   { border-color: #fecaca; background: #fef2f2; }
+    .result-icon {
+      font-size: 16px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    .result-item-body { flex: 1; }
+    .result-item-q { font-weight: 600; margin-bottom: 3px; }
+    .result-item-ans { color: var(--muted); font-size: 13px; }
+    .result-item-ans span { font-weight: 600; }
+    .result-item.wrong .your-ans { color: var(--danger); }
+    .result-item.correct .your-ans { color: var(--success); }
+
+    /* ── 전송 상태 ── */
+    .send-status {
+      text-align: center;
+      font-size: 13px;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    .send-status.sending { color: var(--muted); background: var(--border); }
+    .send-status.sent    { color: var(--success); background: #f0fdf4; }
+    .send-status.error   { color: var(--danger); background: #fef2f2; }
+
+    /* ── 섹션 타이틀 ── */
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 20px 16px; }
+      .header h1 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ════════════ SCREEN 1: 이름 입력 ════════════ -->
+  <div id="screen-name" class="screen active">
+    <div class="header">
+      <div class="badge">표면거칠기 퀴즈</div>
+      <h1>Surface Roughness Quiz</h1>
+      <p>총 20문항 · 객관식 4지선다</p>
+    </div>
+    <div class="card name-form">
+      <label for="input-name">수험자 이름을 입력하세요</label>
+      <input type="text" id="input-name" placeholder="홍길동" autocomplete="off" />
+      <div style="height:16px"></div>
+      <button class="btn btn-primary" id="btn-start" onclick="startQuiz()">
+        시험 시작하기 →
+      </button>
+    </div>
+    <div class="card" style="font-size:13px; color:var(--muted); line-height:1.7;">
+      <strong style="color:var(--text)">안내사항</strong><br>
+      • 문항당 하나만 선택할 수 있습니다.<br>
+      • 모든 문항 선택 후 제출이 가능합니다.<br>
+      • 제출 후 바로 점수와 해설을 확인할 수 있습니다.
+    </div>
+  </div>
+
+  <!-- ════════════ SCREEN 2: 문제 풀기 ════════════ -->
+  <div id="screen-quiz" class="screen">
+    <div class="header" style="margin-bottom:16px">
+      <div class="badge">표면거칠기 퀴즈</div>
+      <h1 id="quiz-student-name"></h1>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="progress-text">1 / 20</span>
+        <span id="answered-text">0개 답변 완료</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar" style="width:5%"></div>
+      </div>
+    </div>
+    <div id="questions-container"></div>
+    <div class="card" style="text-align:center">
+      <button class="btn btn-primary" id="btn-submit" onclick="submitQuiz()" disabled>
+        제출하기
+      </button>
+      <div id="submit-hint" style="font-size:13px; color:var(--muted); margin-top:10px">
+        모든 문항에 답해야 제출할 수 있습니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ SCREEN 3: 결과 ════════════ -->
+  <div id="screen-result" class="screen">
+    <div class="header">
+      <div class="badge">채점 완료</div>
+      <h1>퀴즈 결과</h1>
+    </div>
+    <div class="card">
+      <div class="result-score-wrap">
+        <div class="score-circle">
+          <span class="score-num" id="res-score">0</span>
+          <span class="score-denom">/ 20</span>
+        </div>
+        <div class="result-name" id="res-name"></div>
+        <div class="result-pct" id="res-pct"></div>
+        <span class="grade-badge" id="res-grade"></span>
+      </div>
+      <div id="send-status" class="send-status sending">📨 결과를 전송 중입니다…</div>
+    </div>
+    <div class="card">
+      <div class="section-title">📋 문항별 결과</div>
+      <div class="result-list" id="result-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ───────────── EmailJS 설정 (직접 수정 필요) ───────────── */
+const EMAILJS_PUBLIC_KEY  = "4_97GNSqGIfzJW0Qe";
+const EMAILJS_SERVICE_ID  = "service_uwvgjmk";
+const EMAILJS_TEMPLATE_ID = "4gj7ojf";
+/* ──────────────────────────────────────────────────────── */
+
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+/* ─── 문제 데이터 ─── */
+const QUESTIONS = [
+  {
+    q: "표면거칠기를 측정해야 하는 가장 중요한 이유는 무엇인가?",
+    opts: ["제품의 색상을 결정하기 위해", "기계 부품의 기능적 성능 확보를 위해", "외관 품질만 확인하기 위해", "절삭유 종류를 결정하기 위해"],
+    ans: 2,
+    exp: "표면거칠기는 마찰·마모·발열·내구성과 직결되므로 기능 품질 확보를 위해 반드시 측정해야 합니다."
+  },
+  {
+    q: "공구 마모와 표면거칠기의 관계로 옳은 것은?",
+    opts: ["공구 마모가 증가하면 거칠기는 감소한다", "공구 마모는 표면거칠기에 영향을 주지 않는다", "공구 마모가 진행되면 거칠기 값이 증가한다", "공구 마모는 오직 Rz 값에만 영향을 준다"],
+    ans: 3,
+    exp: "공구가 마모되면 표면이 찢기거나 스크래치가 발생해 거칠기 값이 증가합니다."
+  },
+  {
+    q: "파상도(Waviness)의 특징으로 옳은 것은?",
+    opts: ["짧은 주기의 미세 요철", "긴 주기·장파장의 큰 스케일 굴곡", "결 방향의 변화", "홈(Flaw)과 동일 개념"],
+    ans: 2,
+    exp: "파상도는 긴 주기·장파장 형태의 큰 굴곡을 의미합니다."
+  },
+  {
+    q: "거칠기(Roughness)의 특징으로 가장 적절한 것은?",
+    opts: ["표면의 가장 큰 스케일 굴곡", "파상도보다 더 긴 주기", "매우 미세한 단파장 요철", "형상 오차와 동일하다"],
+    ans: 3,
+    exp: "거칠기는 표면의 가장 미세한 단파장 요철을 의미합니다."
+  },
+  {
+    q: "결(Lay)에 대한 설명으로 바른 것은?",
+    opts: ["측정 시 결 방향과 평행하게 측정하는 것이 기본", "가공 방법과 무관한 표면 패턴", "특별한 지시가 없으면 결의 직각 방향으로 측정한다", "결은 거칠기 값과 동일 개념이다"],
+    ans: 3,
+    exp: "특별한 지시가 없을 때는 결 방향의 직각 방향으로 측정하는 것이 원칙입니다."
+  },
+  {
+    q: "홈(Flaw)에 대한 설명으로 맞는 것은?",
+    opts: ["홈은 거칠기 계산에 반드시 포함된다", "홈은 기능적 문제를 일으킬 수 있어 별도로 관리해야 한다", "홈은 파상도의 한 종류이다", "홈은 무늬결 방향을 결정한다"],
+    ans: 2,
+    exp: "홈(Flaw)은 기능적 문제를 일으킬 수 있어 거칠기와 별도로 관리해야 합니다."
+  },
+  {
+    q: "다음 중 가공방법에 따른 무늬결 변화 설명으로 옳은 것은?",
+    opts: ["호닝에서는 무늬결이 거의 발생하지 않는다", "밀링과 연삭은 동일한 무늬결을 만든다", "호닝 공정은 X자 교차 무늬결을 만든다", "가공방법은 무늬결에 영향을 주지 않는다"],
+    ans: 3,
+    exp: "호닝 공정은 X자 교차 무늬결을 만드는 것이 특징입니다."
+  },
+  {
+    q: "밀링 지시 표면을 연삭으로 가공하면 안 되는 이유는?",
+    opts: ["치수가 커지기 때문이다", "무늬결이 달라 기능 요구를 충족하지 못할 수 있다", "연삭은 항상 거칠기를 증가시킨다", "도면 해석이 불가능해진다"],
+    ans: 2,
+    exp: "연삭은 무늬결이 매우 촘촘해 설계자가 의도한 기능을 충족하지 못할 수 있습니다."
+  },
+  {
+    q: "컷오프 λc 의 역할로 올바른 것은?",
+    opts: ["거칠기와 파상도를 구분하는 기준 길이", "결 방향을 결정하는 요소", "형상 오차를 제거하는 요소", "기하공차와 동일한 의미"],
+    ans: 1,
+    exp: "컷오프는 거칠기와 파상도를 구분하는 기준 길이입니다."
+  },
+  {
+    q: "컷오프 값을 증가시키면 나타나는 경향은?",
+    opts: ["더 짧은 파장을 거칠기로 포함한다", "거칠기 값이 작아진다", "더 긴 파장을 거칠기로 포함해 거칠기 값이 커진다", "파상도 값이 증가한다"],
+    ans: 3,
+    exp: "컷오프가 커지면 긴 파장까지 거칠기에 포함되어 거칠기 값이 커집니다."
+  },
+  {
+    q: "기준길이(Sampling length)의 정의로 바른 것은?",
+    opts: ["평가길이를 5배 확대한 길이", "컷오프와 동일한 길이로 측정의 기본 단위", "측정 전체 길이", "형상 오차를 포함하는 모든 길이"],
+    ans: 2,
+    exp: "기준길이는 컷오프와 동일하며 거칠기 평가의 기본 단위입니다."
+  },
+  {
+    q: "평가기길이(Evaluation length)의 기본 규정은?",
+    opts: ["기준길이 × 5", "컷오프 × 2", "측정길이와 동일", "무작위로 선정"],
+    ans: 1,
+    exp: "평가기길이는 기준길이 × 5를 사용하는 것이 KS B ISO 4288 기본 규정입니다."
+  },
+  {
+    q: "측정길이(이송길이)에 대한 설명 중 옳은 것은?",
+    opts: ["평가길이와 항상 같다", "양끝 ½ 기준길이를 제외하는 이유는 데이터 안정성이 떨어지기 때문", "컷오프 값에 영향을 주지 않는다", "형상 요소 제거에만 사용된다"],
+    ans: 2,
+    exp: "측정 끝부분의 데이터는 흔들림이 있어 제외해야 하므로 양 끝 각 ½ 기준길이를 삭제합니다."
+  },
+  {
+    q: "Ra의 정의로 옳은 것은?",
+    opts: ["최대 봉우리와 계곡의 높이", "절대값 평균", "전체 프로파일 중 한 번만 측정되는 값", "국부 결함을 가장 잘 검출한다"],
+    ans: 2,
+    exp: "Ra는 표면 요철의 절대값 평균을 의미합니다."
+  },
+  {
+    q: "Rz의 정의로 맞는 것은?",
+    opts: ["평가길이 전체의 최고점-최저점", "각 기준길이에서의 최대 높이 평균", "형상 오차의 크기", "결 방향의 차이"],
+    ans: 2,
+    exp: "Rz는 각 기준길이에서의 최고점-최저점 높이의 평균입니다."
+  },
+  {
+    q: "Rt의 특성으로 맞는 것은?",
+    opts: ["Ra와 동일한 값을 갖는다", "한 기준길이에서 여러 번 측정", "전체 길이에서 가장 높은 봉우리와 가장 깊은 계곡 차이", "평균값 개념이다"],
+    ans: 3,
+    exp: "Rt는 평가길이 전체에서 가장 높은 봉우리와 가장 깊은 계곡의 차이입니다."
+  },
+  {
+    q: "Ra, Rz, Rt 관계로 올바른 것은?",
+    opts: ["Rt < Rz < Ra", "Ra < Rz < Rt", "Rz < Ra < Rt", "모두 동일한 값"],
+    ans: 2,
+    exp: "일반적으로 Ra < Rz < Rt 의 관계가 성립합니다."
+  },
+  {
+    q: "표면거칠기 평가 순서로 올바른 것은?",
+    opts: ["측정기 → 육안 → 시편 비교", "시편 비교 → 육안 → 측정기", "육안 → 시편 비교 → 측정기", "임의 순서"],
+    ans: 3,
+    exp: "표면거칠기 평가는 육안 → 시편비교 → 측정기 순으로 진행합니다."
+  },
+  {
+    q: "16% Rule 이 적용되는 경우는?",
+    opts: ["한 지점에서 반복 측정", "여러 평가길이를 측정할 때", "형상 오류 측정 시", "Max Rule 조건일 때"],
+    ans: 2,
+    exp: "여러 평가길이를 측정했을 때 일부 초과값(16% 이내)은 허용하는 규정입니다."
+  },
+  {
+    q: "Max Rule 의 특징으로 옳은 것은?",
+    opts: ["16% 이상 초과해도 합격", "최대값이 규격 초과하면 불합격", "표준에서 거의 사용되지 않는다", "결 방향을 판단할 때 사용"],
+    ans: 2,
+    exp: "Max Rule은 규격 초과값이 하나라도 있으면 불합격 처리합니다."
+  }
+];
+
+/* ─── 상태 ─── */
+let studentName = "";
+let userAnswers = new Array(QUESTIONS.length).fill(null);
+
+/* ─── 이름 입력 ─── */
+document.getElementById('input-name').addEventListener('keypress', e => {
+  if (e.key === 'Enter') startQuiz();
+});
+
+function startQuiz() {
+  const name = document.getElementById('input-name').value.trim();
+  if (!name) {
+    document.getElementById('input-name').focus();
+    document.getElementById('input-name').style.borderColor = 'var(--danger)';
+    return;
+  }
+  studentName = name;
+  document.getElementById('quiz-student-name').textContent = name + ' 님';
+  renderQuestions();
+  show('screen-quiz');
+}
+
+/* ─── 문제 렌더링 ─── */
+function renderQuestions() {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+  QUESTIONS.forEach((q, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = `q-card-${idx}`;
+
+    const optsHtml = q.opts.map((opt, oi) => `
+      <label class="option-label" id="opt-${idx}-${oi}" onclick="selectOption(${idx}, ${oi+1})">
+        <input type="radio" name="q${idx}" value="${oi+1}" />
+        <span class="option-num">${oi+1}</span>
+        <span>${opt}</span>
+      </label>
+    `).join('');
+
+    card.innerHTML = `
+      <div class="question-num">문항 ${idx+1} / ${QUESTIONS.length}</div>
+      <div class="question-text">${idx+1}. ${q.q}</div>
+      <div class="options">${optsHtml}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+/* ─── 선택 ─── */
+function selectOption(qIdx, optNum) {
+  userAnswers[qIdx] = optNum;
+
+  // 시각적 표시
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById(`opt-${qIdx}-${i-1}`);
+    if (el) el.classList.toggle('selected', i === optNum);
+  }
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = userAnswers.filter(a => a !== null).length;
+  const total = QUESTIONS.length;
+  const pct = Math.round((answered / total) * 100);
+
+  document.getElementById('progress-text').textContent = `진행률 ${pct}%`;
+  document.getElementById('answered-text').textContent = `${answered} / ${total}문항 완료`;
+  document.getElementById('progress-bar').style.width = `${pct}%`;
+
+  const submitBtn = document.getElementById('btn-submit');
+  const hint = document.getElementById('submit-hint');
+  if (answered === total) {
+    submitBtn.disabled = false;
+    hint.textContent = '모든 문항을 선택했습니다. 제출할 준비가 됐습니다!';
+    hint.style.color = 'var(--success)';
+  } else {
+    submitBtn.disabled = true;
+    hint.textContent = `아직 ${total - answered}개 문항이 남았습니다.`;
+    hint.style.color = 'var(--muted)';
+  }
+}
+
+/* ─── 제출 ─── */
+function submitQuiz() {
+  const score = userAnswers.reduce((acc, ans, i) =>
+    acc + (ans === QUESTIONS[i].ans ? 1 : 0), 0);
+  const pct = Math.round((score / QUESTIONS.length) * 100);
+
+  // 점수 화면 세팅
+  document.getElementById('res-score').textContent = score;
+  document.getElementById('res-name').textContent = studentName + ' 님';
+  document.getElementById('res-pct').textContent = `정답률 ${pct}% (${score} / ${QUESTIONS.length})`;
+
+  const gradeEl = document.getElementById('res-grade');
+  let grade, gradeColor;
+  if (pct >= 90)      { grade = '🏆 우수'; gradeColor = '#166534'; }
+  else if (pct >= 70) { grade = '✅ 양호'; gradeColor = '#15803d'; }
+  else if (pct >= 50) { grade = '📝 보통'; gradeColor = '#b45309'; }
+  else                { grade = '📖 복습 필요'; gradeColor = '#b91c1c'; }
+  gradeEl.textContent = grade;
+  gradeEl.style.background = gradeColor + '22';
+  gradeEl.style.color = gradeColor;
+
+  // 문항별 결과
+  const list = document.getElementById('result-list');
+  list.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const isCorrect = userAnswers[i] === q.ans;
+    const item = document.createElement('div');
+    item.className = `result-item ${isCorrect ? 'correct' : 'wrong'}`;
+    item.innerHTML = `
+      <div class="result-icon">${isCorrect ? '✅' : '❌'}</div>
+      <div class="result-item-body">
+        <div class="result-item-q">${i+1}. ${q.q}</div>
+        <div class="result-item-ans">
+          내 답: <span class="your-ans">${userAnswers[i]}번 — ${q.opts[userAnswers[i]-1]}</span>
+          ${!isCorrect ? `&nbsp;|&nbsp; 정답: <span>${q.ans}번 — ${q.opts[q.ans-1]}</span>` : ''}
+        </div>
+        ${!isCorrect ? `<div style="font-size:12px; color:var(--muted); margin-top:4px">💡 ${q.exp}</div>` : ''}
+      </div>
+    `;
+    list.appendChild(item);
+  });
+
+  show('screen-result');
+  sendEmail(score, pct);
+}
+
+/* ─── EmailJS 전송 ─── */
+function sendEmail(score, pct) {
+  const now = new Date();
+  const timeStr = now.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+
+  // 문항별 결과 텍스트
+  const detailLines = QUESTIONS.map((q, i) => {
+    const isCorrect = userAnswers[i] === q.ans;
+    return `${i+1}번: ${isCorrect ? '✅ 정답' : `❌ 오답 (내 답: ${userAnswers[i]}번, 정답: ${q.ans}번)`}`;
+  }).join('\n');
+
+  const wrongList = QUESTIONS
+    .map((q, i) => userAnswers[i] !== q.ans ? `${i+1}번 (정답: ${q.ans}번)` : null)
+    .filter(Boolean).join(', ') || '없음';
+
+  const templateParams = {
+    student_name: studentName,
+    score: score,
+    total: QUESTIONS.length,
+    percent: pct,
+    grade: score >= 18 ? '우수' : score >= 14 ? '양호' : score >= 10 ? '보통' : '복습 필요',
+    submit_time: timeStr,
+    wrong_list: wrongList,
+    detail: detailLines,
+  };
+
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+    .then(() => {
+      const el = document.getElementById('send-status');
+      el.className = 'send-status sent';
+      el.textContent = '✅ 결과가 강사님께 전송되었습니다.';
+    })
+    .catch(err => {
+      const el = document.getElementById('send-status');
+      el.className = 'send-status error';
+      el.textContent = '⚠️ 전송 실패. 강사님께 직접 점수를 알려주세요. (오류: ' + JSON.stringify(err) + ')';
+    });
+}
+
+/* ─── 화면 전환 ─── */
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
