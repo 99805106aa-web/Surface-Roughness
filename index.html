@@ -405,8 +405,8 @@
       </div>
       <div id="send-status" class="send-status sending">📨 결과를 전송 중입니다…</div>
     </div>
-    <div class="card">
-      <div class="section-title">📋 문항별 결과</div>
+    <div class="card" id="result-detail-card" style="display:none">
+      <div class="section-title">📋 문항별 결과 및 해설</div>
       <div class="result-list" id="result-list"></div>
     </div>
   </div>
@@ -663,26 +663,32 @@ function submitQuiz() {
   gradeEl.style.background = gradeColor + '22';
   gradeEl.style.color = gradeColor;
 
-  // 문항별 결과
-  const list = document.getElementById('result-list');
-  list.innerHTML = '';
-  QUESTIONS.forEach((q, i) => {
-    const isCorrect = userAnswers[i] === q.ans;
-    const item = document.createElement('div');
-    item.className = `result-item ${isCorrect ? 'correct' : 'wrong'}`;
-    item.innerHTML = `
-      <div class="result-icon">${isCorrect ? '✅' : '❌'}</div>
-      <div class="result-item-body">
-        <div class="result-item-q">${i+1}. ${q.q}</div>
-        <div class="result-item-ans">
-          내 답: <span class="your-ans">${userAnswers[i]}번 — ${q.opts[userAnswers[i]-1]}</span>
-          ${!isCorrect ? `&nbsp;|&nbsp; 정답: <span>${q.ans}번 — ${q.opts[q.ans-1]}</span>` : ''}
+  // 문항별 결과 (강의 후만 표시)
+  const resultCard = document.getElementById('result-detail-card');
+  if (quizTiming === '강의 후') {
+    resultCard.style.display = 'block';
+    const list = document.getElementById('result-list');
+    list.innerHTML = '';
+    QUESTIONS.forEach((q, i) => {
+      const isCorrect = userAnswers[i] === q.ans;
+      const item = document.createElement('div');
+      item.className = `result-item ${isCorrect ? 'correct' : 'wrong'}`;
+      item.innerHTML = `
+        <div class="result-icon">${isCorrect ? '✅' : '❌'}</div>
+        <div class="result-item-body">
+          <div class="result-item-q">${i+1}. ${q.q}</div>
+          <div class="result-item-ans">
+            내 답: <span class="your-ans">${userAnswers[i]}번 — ${q.opts[userAnswers[i]-1]}</span>
+            ${!isCorrect ? `&nbsp;|&nbsp; 정답: <span>${q.ans}번 — ${q.opts[q.ans-1]}</span>` : ''}
+          </div>
+          ${!isCorrect ? `<div style="font-size:12px; color:var(--muted); margin-top:4px">💡 ${q.exp}</div>` : ''}
         </div>
-        ${!isCorrect ? `<div style="font-size:12px; color:var(--muted); margin-top:4px">💡 ${q.exp}</div>` : ''}
-      </div>
-    `;
-    list.appendChild(item);
-  });
+      `;
+      list.appendChild(item);
+    });
+  } else {
+    resultCard.style.display = 'none';
+  }
 
   show('screen-result');
   sendEmail(score, pct);
