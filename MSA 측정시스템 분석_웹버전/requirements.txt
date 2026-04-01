@@ -1,0 +1,10 @@
+streamlit
+pandas
+numpy
+scipy
+matplotlib
+statsmodels
+openpyxl
+plotly
+fpdf2
+pypdf

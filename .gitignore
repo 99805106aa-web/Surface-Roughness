@@ -1,0 +1,40 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+*.log
+watch.log
+error_log.txt
+
+# Local runtime/session config
+excel_merger_config.json
+excel_merger_config.bak.json
+recent_session.json
+recent_session.bak.json
+last_save_info.json
+launcher_apps.json
+launcher_state.json
+tabbed_launcher_recent.json
+tabbed_launcher_state.json
+
+# Local/temporary artifacts
+.claude/
+CLAUDE.md
+NDH6SA~M
+*.lnk
+.DS_Store
+
+# Local data folders
+데이터 결합/
+데이터 규격/
+범위추출경로/
+프로필 저장하기/
+
+# Python environments and app runtime artifacts
+**/__pycache__/
+**/venv/
+**/venv_broken_*/
+**/streamlit.out.log
+**/streamlit.err.log
